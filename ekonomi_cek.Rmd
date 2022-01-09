@@ -1,0 +1,394 @@
+---
+title: "cobacoba"
+author: "kurnia khairunnisaa"
+date: "25 Oktober 2018"
+output: html_document
+---
+
+```{r}
+# Import all library
+library(rvest)
+library(lubridate)
+library(stringr)
+library(tidyverse)
+library(tidytext)
+library(katadasaR)
+library(stopwords)
+library(tm)
+```
+
+```{r}
+#1
+daftarpages <- c(ceiling(902/9),ceiling(1296/9),ceiling(69/9)) #Jumlah pages
+daftarurl <-c(
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=29&sortby=time&fromdatex=01/01/2018&todatex=31/03/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=3&sortby=time&fromdatex=01/01/2018&todatex=31/03/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=5&sortby=time&fromdatex=01/01/2018&todatex=31/03/2018&page=')
+fecthurl <- function(daftarurl){
+  final_listurl <- data.frame(links = NULL, urls = NULL)
+  for (u in 1:length(daftarurl)){
+    listurl <- data.frame(links = NULL, urls = NULL)
+    for (i in 1:daftarpages[u]) {
+      current_url <- paste(daftarurl[u],toString(i),sep ="")
+      main.page <- read_html(current_url)
+      # Get link URLs
+      urls <- main.page %>% # feed `main.page` to the next step
+              html_nodes("article a") %>% # get the CSS nodes
+              html_attr("href") # extract the URLs
+      # Get link text
+      links <- main.page %>% # feed `main.page` to the next step
+              html_nodes(".title") %>% # get the CSS nodes
+              html_text() # extract the link text
+      # Combine `links` and `urls` into a data.frame
+      currentlisturl <- data.frame(links = links, urls = urls, stringsAsFactors = TRUE)
+      listurl <- rbind(listurl,currentlisturl)
+    }
+    final_listurl <- rbind(final_listurl,listurl)
+  }
+  return(final_listurl)
+}
+listurls1 <- fecthurl(daftarurl)
+```
+
+```{r}
+#2
+daftarpages <- c(ceiling(1042/9),ceiling(1554/9),ceiling(76/9)) #Jumlah pages
+daftarurl <-c(
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=29&sortby=time&fromdatex=01/04/2018&todatex=30/06/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=3&sortby=time&fromdatex=01/04/2018&todatex=30/06/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=5&sortby=time&fromdatex=01/04/2018&todatex=30/06/2018&page=')
+fecthurl <- function(daftarurl){
+  final_listurl <- data.frame(links = NULL, urls = NULL)
+  for (u in 1:length(daftarurl)){
+    listurl <- data.frame(links = NULL, urls = NULL)
+    for (i in 1:daftarpages[u]) {
+      current_url <- paste(daftarurl[u],toString(i),sep ="")
+      main.page <- read_html(current_url)
+      # Get link URLs
+      urls <- main.page %>% # feed `main.page` to the next step
+              html_nodes("article a") %>% # get the CSS nodes
+              html_attr("href") # extract the URLs
+      # Get link text
+      links <- main.page %>% # feed `main.page` to the next step
+              html_nodes(".title") %>% # get the CSS nodes
+              html_text() # extract the link text
+      # Combine `links` and `urls` into a data.frame
+      currentlisturl <- data.frame(links = links, urls = urls, stringsAsFactors = TRUE)
+      listurl <- rbind(listurl,currentlisturl)
+    }
+    final_listurl <- rbind(final_listurl,listurl)
+  }
+  return(final_listurl)
+}
+listurls2 <- fecthurl(daftarurl)
+```
+
+```{r}
+#3
+daftarpages <- c(ceiling(1372/9),ceiling(1854/9),ceiling(69/9)) #Jumlah pages
+daftarurl <-c(
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=29&sortby=time&fromdatex=01/07/2018&todatex=30/09/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=3&sortby=time&fromdatex=01/07/2018&todatex=30/09/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=5&sortby=time&fromdatex=01/07/2018&todatex=30/09/2018&page=')
+fecthurl <- function(daftarurl){
+  final_listurl <- data.frame(links = NULL, urls = NULL)
+  for (u in 1:length(daftarurl)){
+    listurl <- data.frame(links = NULL, urls = NULL)
+    for (i in 1:daftarpages[u]) {
+      current_url <- paste(daftarurl[u],toString(i),sep ="")
+      main.page <- read_html(current_url)
+      # Get link URLs
+      urls <- main.page %>% # feed `main.page` to the next step
+              html_nodes("article a") %>% # get the CSS nodes
+              html_attr("href") # extract the URLs
+      # Get link text
+      links <- main.page %>% # feed `main.page` to the next step
+              html_nodes(".title") %>% # get the CSS nodes
+              html_text() # extract the link text
+      # Combine `links` and `urls` into a data.frame
+      currentlisturl <- data.frame(links = links, urls = urls, stringsAsFactors = TRUE)
+      listurl <- rbind(listurl,currentlisturl)
+    }
+    final_listurl <- rbind(final_listurl,listurl)
+  }
+  return(final_listurl)
+}
+listurls3 <- fecthurl(daftarurl)
+```
+
+```{r}
+#4
+daftarpages <- c(ceiling(1349/9),ceiling(1959/9),ceiling(102/9)) #Jumlah pages
+daftarurl <-c(
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=29&sortby=time&fromdatex=01/10/2018&todatex=31/12/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=3&sortby=time&fromdatex=01/10/2018&todatex=31/12/2018&page=',
+  'https://www.detik.com/search/searchall?query=ekonomi&siteid=5&sortby=time&fromdatex=01/10/2018&todatex=31/12/2018&page=')
+fecthurl <- function(daftarurl){
+  final_listurl <- data.frame(links = NULL, urls = NULL)
+  for (u in 1:length(daftarurl)){
+    listurl <- data.frame(links = NULL, urls = NULL)
+    for (i in 1:daftarpages[u]) {
+      current_url <- paste(daftarurl[u],toString(i),sep ="")
+      main.page <- read_html(current_url)
+      # Get link URLs
+      urls <- main.page %>% # feed `main.page` to the next step
+              html_nodes("article a") %>% # get the CSS nodes
+              html_attr("href") # extract the URLs
+      # Get link text
+      links <- main.page %>% # feed `main.page` to the next step
+              html_nodes(".title") %>% # get the CSS nodes
+              html_text() # extract the link text
+      # Combine `links` and `urls` into a data.frame
+      currentlisturl <- data.frame(links = links, urls = urls, stringsAsFactors = TRUE)
+      listurl <- rbind(listurl,currentlisturl)
+    }
+    final_listurl <- rbind(final_listurl,listurl)
+  }
+  return(final_listurl)
+}
+listurls4 <- fecthurl(daftarurl)
+```
+
+```{r}
+fetchberita <- function(listurl) {
+  berita <- data.frame(tanggal=NULL,judul=NULL,isi=NULL,link=NULL,tgl=NULL,hari=NULL,bln=NULL,tahun=NULL,jam=NULL)
+  for(i in seq(nrow(listurl))) {
+    tanggal=NULL;judul=NULL;isi=NULL;link=NULL;tgl=NULL;hari=NULL;bln=NULL;tahun=NULL;jam=NULL
+    tryCatch(
+      {
+        link <- as.character(listurl$urls[i])
+        text <- read_html(as.character(listurl$urls[i])) %>% # load the page
+          html_nodes("#detikdetailtext") %>% # isloate the text
+          html_text() # get the text
+        tanggal <- read_html(as.character(listurl$urls[i])) %>% # load the page
+          html_nodes(".date") %>% # isloate the text
+          html_text() # get the text
+        judul <- read_html(as.character(listurl$urls[i])) %>% # load the page
+          html_nodes("h1") %>% # isloate the text
+          html_text() # get the text
+      },
+      error = function(e){print(i)}
+    )
+    siteurl <- strsplit(link, '.detik.com')[[1]][1]
+tryCatch(
+      {
+          if (siteurl == 'https://news'){
+            a <- strsplit(tanggal,', ')
+            htbt <- a[[1]][1]
+            jam <- a[[1]][2]
+            tanggal <- strsplit(htbt, ' ')[[1]][2:4]
+            tanggal <- paste(tanggal, collapse = ' ')
+            tanggal <- paste(tanggal,jam, collapse = ' ')
+            a <- tanggal
+            b <- strsplit(a," ")[[1]][2]
+            if (b == "Januari") {
+                a<-gsub("Januari","Jan",a)
+                } else if (b == "Februari") {
+                a<-gsub("Februari","Feb",a)
+                } else if (b == "Maret") {
+                a<-gsub("Maret","Mar",a)
+                } else if (b == "April") {
+                a<-gsub("April","Apr",a)
+                } else if (b == "Juni") {
+                a<-gsub("Juni","Jun",a)
+                } else if (b == "Juli") {
+                a<-gsub("Juli","Jul",a)
+                } else if(b == "Agustus" | b == "Agu") {
+                a<-gsub("Agustus","Aug",a)
+                a<-gsub("Agu","Aug",a)
+                }  else if (b == "September") {
+                a<-gsub("September","Sep",a)
+                } else if (b == "Mei") {
+                a<-gsub("Mei","May",a)
+                } else if (b == "Oktober" | b == "Okt") {
+                a<-gsub("Oktober","Oct",a)
+                a<-gsub("Okt","Oct",a)  
+                }  else if (b == "November") {
+                a<-gsub("November","Nov",a)
+                } else if (b == "Desember" | b=="Des") {
+                a<-gsub("Desember","Dec",a)
+                a<-gsub("Des","Dec",a)  
+                }
+        } else {
+            a <- (strsplit(tanggal,", "))
+            a <- (a[[1]][2])
+            b <- strsplit(a," ")[[1]][2]
+            if (b == "Januari") {
+                a<-gsub("Januari","Jan",a)
+                } else if (b == "Februari") {
+                a<-gsub("Februari","Feb",a)
+                } else if (b == "Maret") {
+                a<-gsub("Maret","Mar",a)
+                } else if (b == "April") {
+                a<-gsub("April","Apr",a)
+                } else if (b == "Juni") {
+                a<-gsub("Juni","Jun",a)
+                } else if (b == "Juli") {
+                a<-gsub("Juli","Jul",a)
+                } else if(b == "Agustus" | b == "Agu") {
+                a<-gsub("Agustus","Aug",a)
+                a<-gsub("Agu","Aug",a)
+                }  else if (b == "September") {
+                a<-gsub("September","Sep",a)
+                } else if (b == "Mei") {
+                a<-gsub("Mei","May",a)
+                } else if (b == "Oktober" | b == "Okt") {
+                a<-gsub("Oktober","Oct",a)
+                a<-gsub("Okt","Oct",a)  
+                }  else if (b == "November") {
+                a<-gsub("November","Nov",a)
+                } else if (b == "Desember" | b=="Des") {
+                a<-gsub("Desember","Dec",a)
+                a<-gsub("Des","Dec",a)  
+                }
+          }
+      },
+    error =  function(e){
+        print(i)
+        print(e)
+    }
+  )
+    hari <- day(dmy_hm(a))
+    tgl <- lubridate::date(dmy_hm(a))
+    bln <- month(dmy_hm(a))
+    tahun <- year(dmy_hm(a))
+    jam <- hour(dmy_hm(a))
+    
+    # print(i)
+    tryCatch(
+      {
+          beritacur <-   data.frame(
+            tanggal=a,
+            judul=judul,
+            isi=text,
+            link=link,
+            tgl=tgl,
+            hari=hari,
+            bln=bln,
+            tahun=tahun,
+            jam=jam)
+        
+        berita <- rbind(berita,beritacur)
+        
+       },
+      error=function(e){print(i)}
+    )
+  }
+  return(berita)
+}
+```
+
+```{r}
+beritaeko1 <-fetchberita(listurls1)
+beritaeko2 <-fetchberita(listurls2)
+beritaeko3 <-fetchberita(listurls3)
+beritaeko4 <-fetchberita(listurls4)
+beritaeko <- rbind(beritaeko4,beritaeko3,beritaeko2,beritaeko1)
+```
+
+```{R}
+write.csv(beritaeko,'E:/Tugas Akhir/Fetch Berita/dataeko.csv')
+beritadetik <- read.csv("E:/Tugas Akhir/Fetch Berita/dataeko.csv")
+```
+
+nambah data
+```{R}
+write.csv(beritaeko,'E:/Tugas Akhir/Fetch Berita/dataekonew.csv')
+beritadetik <- read.csv("E:/Tugas Akhir/Fetch Berita/dataekonew.csv")
+```
+
+
+```{r}
+#Remove '\n',\t, keterangan sebelum berita (kota asal dsb) pada teks berita
+  beritadetik$isi <-  gsub('\\n', '', beritadetik$isi)
+  beritadetik$isi <- gsub('\\t', '', beritadetik$isi)
+  beritadetik$isi <- gsub('^[^-]*-', '', beritadetik$isi)
+  beritadetik$isi <- sub('.[^.]+$', '', beritadetik$isi)
+  beritadetik$isi <- gsub('[[:punct:] ]+',' ',beritadetik$isi)
+  beritadetik$isi <- gsub("\\d", "", beritadetik$isi)
+  beritadetik$isi <- tolower(beritadetik$isi)
+  beritadetik$isi <- gsub("\\d", "", beritadetik$isi)
+  beritadetik$isi <- gsub("\\W", " ",beritadetik$isi)
+  beritadetik$isi <- gsub("\\b[A-z]\\b{1}", "",beritadetik$isi)
+```
+
+
+```{R}
+n <- dim(beritadetik)[1]
+ignore <- c()
+addtional <- data.frame(mostkata=NULL, frek=NULL, kumpkata=NULL)
+   for (i in 1:n) {
+    docs <-  Corpus(VectorSource(beritadetik$isi[i]))
+docs <- tm_map(docs, removeWords, stopwords::stopwords(language = "id",source = "stopwords-iso"))
+
+textbag <- str_split(docs, pattern="\\s+") 
+textbag <- unlist(textbag)
+
+docs <- sapply(textbag,katadasaR)
+words <- data_frame(kata = docs) %>% 
+  count(kata) %>%
+  filter(!kata %in% ignore) %>%
+  arrange(desc(n))
+word <- as.factor(words$kata)
+mostkata <- as.character(word[1])
+kumpkata <- as.character(word[1:5])
+kumpkata <- paste(kumpkata, collapse = ",")
+frek <- words$n[1]
+curr_add <- data.frame(mostkata=mostkata, frek=frek, kumpkata=kumpkata)
+addtional <- rbind(addtional,curr_add)
+   }
+
+beritadetik <- cbind(beritadetik,addtional)
+
+x <- data.frame(topik=rep("ekonomi", nrow(beritadetik)))
+beritadetik <- cbind(beritadetik,x)
+beritadetik <- beritadetik[beritadetik$tahun>2017,]
+beritadetik1 <- beritadetik[beritadetik$tahun>2017&beritadetik$bln>6,]
+```
+
+nambah data
+```{r}
+beritaeko <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi.csv")
+#beritaeko <- beritaeko[,-c(1:2)]
+beritaeko <- rbind(beritaeko,beritadetik)
+write.csv(beritaeko,'E:/Tugas Akhir/Data Edit/berita ekonomi.csv')
+beritaeko <- read.csv("E:/Tugas Akhir/Data Edit/berita ekonomi.csv")
+```
+
+```{R}
+write.csv(beritadetik,'E:/Tugas Akhir/Fetch Berita/berita ekonomi 2018.csv')
+write.csv(beritadetik1,'E:/Tugas Akhir/Fetch Berita/berita ekonomi.csv')
+beritaeko <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi.csv")
+```
+
+```{R}
+beritaeko <- beritaeko[,-c(1)]
+```
+
+```{r}
+beritadetik <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi 2018.csv")
+beritadetik <- beritadetik[,-c(1,2)]
+beritadetik1 <- beritadetik[beritadetik$tahun>2017&beritadetik$bln<4,]
+beritadetik2 <- beritadetik[beritadetik$tahun>2017&beritadetik$bln>3&beritadetik$bln<7,]
+beritadetik3 <- beritadetik[beritadetik$tahun>2017&beritadetik$bln>6&beritadetik$bln<10,]
+beritadetik4 <- beritadetik[beritadetik$tahun>2017&beritadetik$bln>9,]
+
+write.csv(beritadetik1,'E:/Tugas Akhir/Fetch Berita/berita eko tri I.csv')
+write.csv(beritadetik2,'E:/Tugas Akhir/Fetch Berita/berita eko tri II.csv')
+write.csv(beritadetik3,'E:/Tugas Akhir/Fetch Berita/berita eko tri III.csv')
+write.csv(beritadetik4,'E:/Tugas Akhir/Fetch Berita/berita eko tri IV.csv')
+```
+
+
+preprocessing data jadi
+```{R}
+beritaeko1 <- beritaeko[!grepl("Kamis 27 September 2018", beritaeko$tanggal),]
+beritaeko1 <- beritaeko1[!grepl("Kamis, 27 Sep 2018", beritaeko1$tanggal),]
+beritaeko1 <- beritaeko1[!(beritaeko1$judul==""), ]
+beritaeko1 <- beritaeko1[!is.na(beritaeko1$tgl), ]
+beritaeko1$tgl <- ymd(beritaeko1$tgl)
+beritaeko1$hari <- as.factor(beritaeko1$hari)
+beritaeko1$bln <- as.factor(beritaeko1$bln)
+beritaeko1$jam <- as.factor(beritaeko1$jam)
+write.csv(beritaeko1,'E:/berita ekoansial 1.csv')
+```
