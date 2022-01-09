@@ -1,0 +1,255 @@
+---
+title: "cobacoba"
+author: "kurnia khairunnisaa"
+date: "21 September 2018"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(GGally)
+library(ggthemes)
+library(ggpubr) #utk publlikasi, hist
+library(leaflet)
+library(lubridate)
+library(dplyr)
+```
+
+```{r}
+ekobis <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi bisnis.csv")
+moneter <- read.csv("E:/Tugas Akhir/Fetch Berita/berita moneter.csv")
+finansial <- read.csv("E:/Tugas Akhir/Fetch Berita/berita finansial.csv")
+ihsg <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ihsg.csv")
+bursavalas <- read.csv("E:/Tugas Akhir/Fetch Berita/berita bursa valas.csv")
+
+bind <- rbind(ihsg,moneter,bursavalas,finansial,ekobis)
+bind <- bind[,-c(1)]
+```
+Pengelompokan kata terbanyak
+```{r}
+#pengelompkan kata terbanyak berdasarkan mostkata. Lalu, dilakukan perhitungan berapa banyak berita dari tiap mostkata. Pengurutan jumlahan ke terkecil, lalu diambi 15 kata teratas lalu diubah menjadi character agar pengolahan mudah.
+hehe <- bind %>% group_by(mostkata)%>% summarise(count=n())
+hehe <- (hehe[order(-hehe$count),])
+kata <- hehe[1:15,] 
+kata <- as.character(kata$mostkata)
+```
+Distribusi kata terbanyak perhari dalam 1 bulan
+```{r fig.width=9, fig.height=5}
+#pengelompokkan mostkata tiap harinya pada bulan tertentu dilihat jumlahan pertopik. 
+sizebulan <- c(7:9)
+for (k in (sizebulan)) {
+  for (i in 1:length(kata)) {
+      hit <-  bind[bind$bln==k,] %>% 
+              filter(mostkata==kata[i]) %>%
+              group_by(hari,topik) %>%
+              summarise(count=n())
+      p <- ggplot(data = hit, aes(x=factor(hari),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:31))+labs(title=sprintf('Distribusi Kata %s Bulan ke-%d',kata[i],k))+
+  theme(plot.title = element_text(hjust = 0.5))
+      print(p)
+      ggsave(sprintf('./%s_%d.png',kata[i],k),width = 9,height = 5, dpi = 100)
+  }
+}
+```
+Distribusi kata terbanyak perhari dalam 3 bulan
+```{r}
+for (i in 1:length(kata)) {
+      hit <-  bind %>% 
+              filter(mostkata==kata[i]) %>%
+              group_by(hari,topik) %>%
+              summarise(count=n())
+      p <- ggplot(data = hit, aes(x=factor(hari),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:31))+labs(title=sprintf('Distribusi Kata %s',kata[i]))+
+  theme(plot.title = element_text(hjust = 0.5))
+      print(p)
+      ggsave(sprintf('./hehe%s.png',kata[i]),width = 9,height = 5, dpi = 100)
+  }
+```
+```{r fig.width=15, fig.height=3}
+#for (i in 1:length(kata)) {
+      hit <-  bind %>% 
+              filter(mostkata==kata[1]) %>%
+              group_by(tgl,topik) %>%
+              summarise(count=n())
+      p <- ggplot(data = hit, aes(x=factor(tgl),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:92))+labs(title=sprintf('Distribusi Kata %s',kata[1]))+
+  theme(plot.title = element_text(hjust = 0.5))
+      print(p)
+      ggsave(sprintf('./hehe%s_.png',kata[1]),width = 9,height = 5, dpi = 100)
+  #}
+```
+
+
+```{r  fig.width=7, fig.height=3}
+for (j in (sizebulan)) {
+ data_ <- bind %>%
+        filter(bln==j, mostkata==kata) %>%
+        group_by(mostkata, topik, tgl) %>%
+        summarise(count=n())
+q <- ggplot(data=data_, aes(x=mostkata, y=count))+
+  geom_bar(stat = "identity",aes(fill=topik))+scale_y_continuous(name='Count',breaks = c(1:10))+coord_flip()+
+  scale_size(range=c(1,3))+
+  facet_wrap(~as.factor(tgl),ncol = length(data_$tgl))+
+  theme(strip.text=element_text(size=5)) 
+print(q) 
+ggsave(sprintf('./%d_.png',j),width = 10,height = 4, dpi = 100)
+}
+```
+data per minggu
+tanggal saham
+```{r}
+dvec <- read.csv("tglsaham.csv", sep = ';')
+dvec <- dmy(dvec$Dates)
+firstdate <- dvec[[1]][1]
+ndate <- as.POSIXlt(firstdate)$wday
+
+if (ndate!=1) {
+  firstdate <- firstdate-(ndate-1)
+}
+
+dweek <- as.numeric(dvec-firstdate) %/% 7
+```
+tanggal berita
+```{r}
+bind$tgl <- as.Date(bind$tgl)
+str(bind)
+firstdate <- min(bind$tgl)
+ndate <- as.POSIXlt(firstdate)$wday
+
+if (ndate!=1) {
+  firstdate <- firstdate-(ndate-1)
+}
+
+bind$dweek <- as.numeric(bind$tgl-firstdate) %/% 7
+```
+
+
+```{r fig.width=9, fig.height=5}
+hit <-  bind[bind$bln==7&bind$dweek>=0,] %>% 
+        filter(mostkata==kata[2]) %>%
+        group_by(h,topik) %>%
+        summarise(count=n())
+ggplot(data = hit, aes(x=factor(hari),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:31))+labs(title=sprintf('Distribusi Kata %s Bulan ke-%d',kata[2],7)) +
+  theme(plot.title = element_text(hjust = 0.5))
+getwd()
+
+data_ <- bind %>%
+        filter(bln==7&bind$dweek>=0, mostkata%in%kata) %>%
+        group_by(mostkata, topik, dweek) %>%
+        summarise(count=n())
+q <- ggplot(data=data_, aes(x=mostkata))+
+  geom_bar(stat = "count",aes(fill=topik))+scale_y_continuous(name='Count',breaks = c(1:10))+coord_flip()+labs(title=sprintf('Distribusi Kata pada Bulan ke-%d',7))
+  scale_size(range=c(1,3))+
+  facet_wrap(~as.factor(dweek),ncol = length(data_$dweek))+
+  theme(strip.text=element_text(size=5)) 
+print(q) 
+ggsave(sprintf('./bln7.png'),width = 9,height = 7, dpi = 100)
+```
+
+3 bulan
+```{r}
+?scale_x
+hit <- bind %>% group_by(tgl,topik,mostkata)%>% summarise(count=n())
+
+hit <- hit[(hit$count)>floor(mean(hit$count)),]
+```
+3 bulan
+```{r fig.width=8, fig.height=10}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+```{r}
+hit
+```
+
+September
+```{r}
+hit <- bind[(bind$bln==9),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+hit
+hit <- hit[(hit$count)>floor(mean(hit$count)),]
+```
+September
+```{r fig.width=8, fig.height=5}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+Agustus
+```{r}
+hit <- bind[(bind$bln==8),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+hit <- hit[(hit$count)>floor(mean(hit$count)),]
+```
+Agustus
+```{r fig.width=8, fig.height=3}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+Juli
+```{r}
+hit <- bind[(bind$bln==7),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+hit <- hit[(hit$count)>floor(mean(hit$count)),]
+```
+Juli
+```{r fig.width=8, fig.height=7}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+25 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==25),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+25 September
+```{r fig.width=4, fig.height=2}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+24 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==24),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+24 September
+```{r fig.width=4, fig.height=3}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+17 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==17),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+17 September
+```{r fig.width=4, fig.height=2}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+16 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==16),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+16 September
+```{r fig.width=4, fig.height=2}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+9 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==9),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+9 September
+```{r fig.width=4, fig.height=1}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+5 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==5),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+5 September
+```{r fig.width=4, fig.height=3}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+4 September
+```{r}
+hit <- bind[(bind$bln==9 & bind$hari==4),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+4 September
+```{r fig.width=4, fig.height=3}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+30 Agustus
+```{r}
+hit <- bind[(bind$bln==8  & bind$hari==6),] %>% group_by(topik,mostkata)%>% summarise(count=n())
+```
+30 Agustus
+```{r fig.width=4, fig.height=2}
+ggplot(data = hit, aes(x=mostkata,group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+coord_flip()
+```
+x ukuran kata2 turunnya berapa, jgn satu2. misal ada kata yang gada dari brp hr dikumpulkan misal yg ada tiap hari di rank populer bs dijadiin database awal, kebanyakan muncul nnt dijadiin rujukan jd nnt kata2nya tetep sama untuk plot grafik. sumbu y jgn berubah2, idenya pgn tau distribusi kata2 dr kata2 basic nanti punya histogram tertentu. Mungkin nanti bs dibalik kl turunnya sekian peluang kata muncul brp. kl error cari tau jgn asal tampilin. jadiin grafik ihsg relatif, misal terhadap penutupan.
+
+bikin grafiknya x tanggal dengan dibawahnya list mostkata tadi yg udh di rank dan dipilih plg banyak jd nnt diliat kalau tanggal berapa kaya gimana topik2 yg munculnya, ditambah nanti labelinnya itu ihsgnya turun/naik di atasnya. jadi ini bisa sekaligus banyak. ini plot 3 gitu mesti lebih diperjelas.
+

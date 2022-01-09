@@ -1,0 +1,1085 @@
+---
+title: "visualisasi"
+author: "kurnia khairunnisaa"
+date: "19 Oktober 2018"
+output: html_document
+---
+
+```{r}
+library(ggplot2)
+library(GGally)
+library(ggthemes)
+library(ggpubr) #utk publlikasi, hist
+library(leaflet)
+library(lubridate)
+library(dplyr)
+library(matrixStats)
+```
+Pengambilan dan penggabungan data juli-desember 2018
+```{r}
+ekobis <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi bisnis.csv")
+moneter <- read.csv("E:/Tugas Akhir/Fetch Berita/berita moneter.csv")
+finansial <- read.csv("E:/Tugas Akhir/Fetch Berita/berita finansial.csv")
+ihsg <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ihsg.csv")
+bursavalas <- read.csv("E:/Tugas Akhir/Fetch Berita/berita bursa valas.csv")
+eko <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi.csv")
+
+bind <- rbind(ihsg,moneter,bursavalas,finansial,ekobis,eko)
+bind <- bind[,-c(1)]
+```
+
+Pengambilan dan penggabungan data januari-maret 2018
+```{r}
+ekobis <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi bisnis 2018.csv")
+moneter <- read.csv("E:/Tugas Akhir/Fetch Berita/berita moneter 2018.csv")
+finansial <- read.csv("E:/Tugas Akhir/Fetch Berita/berita finansial 2018.csv")
+ihsg <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ihsg 2018.csv")
+bursavalas <- read.csv("E:/Tugas Akhir/Fetch Berita/berita bursa valas 2018.csv")
+eko <- read.csv("E:/Tugas Akhir/Fetch Berita/berita ekonomi 2018.csv")
+
+bind <- rbind(ihsg,moneter,bursavalas,finansial,ekobis,eko)
+bind <- bind[,-c(1)]
+```
+
+Sebelumnya tiap hari, bulan dan 3 bulan di visualisasi seluruh kata distribusinya kaya gimana, 
+kata terbanyaknya. Dari visualisasi per hari, di kaitin sama fluktuasi harga IHSG mana yang pengaruh. Dari visualisasi ini cukup signifikan, jad diambil kata terbanyak disini diambil 15 kata.
+
+kata populer per hari kalau diliat per topik juli-des
+```{r}
+sizebulan <- c(7:12)
+topic <- levels(as.factor(bind$topik))
+```
+kata populer per hari kalau diliat per topik jan-mar
+```{r}
+sizebulan <- c(1:3)
+topic <- levels(as.factor(bind$topik))
+```
+
+juli-desember 2018
+```{r}
+#bikin data frame kosong
+for (j in (sizebulan)) {
+  for (i in 1:(length(topic))) {
+    #diitung dulu yang muncul tiap hari, jadi nanti perhitungan berikutnya dihitung total perbulan dari tiap hari itu
+    temp <- bind[bind$bln==j,] %>%
+            filter(topik %in% topic[i]) %>%
+            group_by(hari,mostkata) %>%
+            summarise(Unique_Elements = n_distinct(mostkata))
+    temp <- temp %>% group_by(mostkata) %>% summarise (total=sum(Unique_Elements))
+    temp <- (temp[order(-temp$total),]) 
+    temp <- temp[1:15,] 
+    
+    if (j==7&i==1) {
+      juliihsg <- data.frame(mostkata=NULL,total=NULL)
+      juliihsg <- rbind(juliihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(juliihsg)))
+      juliihsg <- cbind(juliihsg,x)
+    } else if (j==7&i==2) {
+      julimon <- data.frame(mostkata=NULL,total=NULL)
+      julimon <- rbind(julimon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(julimon)))
+      julimon <- cbind(julimon,x)
+    } else if (j==7&i==3) {
+      julibv <- data.frame(mostkata=NULL,total=NULL)
+      julibv <- rbind(julibv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(julibv)))
+      julibv <- cbind(julibv,x)
+    } else if (j==7&i==4) {
+      julifin <- data.frame(mostkata=NULL,total=NULL)
+      julifin <- rbind(julifin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(julifin)))
+      julifin <- cbind(julifin,x)
+    } else if (j==7&i==5) {
+      juliekobis <- data.frame(mostkata=NULL,total=NULL)
+      juliekobis <- rbind(juliekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(juliekobis)))
+      juliekobis <- cbind(juliekobis,x)
+    } else if (j==7&i==6) {
+      julieko <- data.frame(mostkata=NULL,total=NULL)
+      julieko <- rbind(julieko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(julieko)))
+      julieko <- cbind(julieko,x)
+    } else if (j==8&i==1) {
+      augihsg <- data.frame(mostkata=NULL,total=NULL)
+      augihsg <- rbind(augihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(augihsg)))
+      augihsg <- cbind(augihsg,x)
+    } else if (j==8&i==2) {
+      augmon <- data.frame(mostkata=NULL,total=NULL)
+      augmon <- rbind(augmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(augmon)))
+      augmon <- cbind(augmon,x)
+    } else if (j==8&i==3) {
+      augbv <- data.frame(mostkata=NULL,total=NULL)
+      augbv <- rbind(augbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(augbv)))
+      augbv <- cbind(augbv,x)
+    } else if (j==8&i==4) {
+      augfin <- data.frame(mostkata=NULL,total=NULL)
+      augfin <- rbind(augfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(augfin)))
+      augfin <- cbind(augfin,x)
+    } else if (j==8&i==5) {
+      augekobis <- data.frame(mostkata=NULL,total=NULL)
+      augekobis <- rbind(augekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(augekobis)))
+      augekobis <- cbind(augekobis,x)
+    } else if (j==8&i==6) {
+      augeko <- data.frame(mostkata=NULL,total=NULL)
+      augeko <- rbind(augeko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(augeko)))
+      augeko <- cbind(augeko,x)
+    } else if (j==9&i==1) {
+      sepihsg <- data.frame(mostkata=NULL,total=NULL)
+      sepihsg <- rbind(sepihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(sepihsg)))
+      sepihsg <- cbind(sepihsg,x)
+    } else if (j==9&i==2) {
+      sepmon <- data.frame(mostkata=NULL,total=NULL)
+      sepmon <- rbind(sepmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(sepmon)))
+      sepmon <- cbind(sepmon,x)
+    } else if (j==9&i==3) {
+      sepbv <- data.frame(mostkata=NULL,total=NULL)
+      sepbv <- rbind(sepbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(sepbv)))
+      sepbv <- cbind(sepbv,x)
+    } else if (j==9&i==4) {
+      sepfin <- data.frame(mostkata=NULL,total=NULL)
+      sepfin <- rbind(sepfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(sepfin)))
+      sepfin <- cbind(sepfin,x)
+    } else if (j==9&i==5) {
+      sepekobis <- data.frame(mostkata=NULL,total=NULL)
+      sepekobis <- rbind(sepekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(sepekobis)))
+      sepekobis <- cbind(sepekobis,x)
+    } else if (j==9&i==6) {
+      sepeko <- data.frame(mostkata=NULL,total=NULL)
+      sepeko <- rbind(sepeko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(sepeko)))
+      sepeko <- cbind(sepeko,x)
+    } else if (j==10&i==1) {
+      oktihsg <- data.frame(mostkata=NULL,total=NULL)
+      oktihsg <- rbind(oktihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(oktihsg)))
+      oktihsg <- cbind(oktihsg,x)
+    } else if (j==10&i==2) {
+      oktmon <- data.frame(mostkata=NULL,total=NULL)
+      oktmon <- rbind(oktmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(oktmon)))
+      oktmon <- cbind(oktmon,x)
+    } else if (j==10&i==3) {
+      oktbv <- data.frame(mostkata=NULL,total=NULL)
+      oktbv <- rbind(oktbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(oktbv)))
+      oktbv <- cbind(oktbv,x)
+    } else if (j==10&i==4) {
+      oktfin <- data.frame(mostkata=NULL,total=NULL)
+      oktfin <- rbind(oktfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(oktfin)))
+      oktfin <- cbind(oktfin,x)
+    } else if (j==10&i==5) {
+      oktekobis <- data.frame(mostkata=NULL,total=NULL)
+      oktekobis <- rbind(oktekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(oktekobis)))
+      oktekobis <- cbind(oktekobis,x)
+    } else if (j==10&i==6) {
+      okteko <- data.frame(mostkata=NULL,total=NULL)
+      okteko <- rbind(okteko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(okteko)))
+      okteko <- cbind(okteko,x)
+    } else if (j==11&i==1) {
+      novihsg <- data.frame(mostkata=NULL,total=NULL)
+      novihsg <- rbind(novihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(novihsg)))
+      novihsg <- cbind(novihsg,x)
+    } else if (j==11&i==2) {
+      novmon <- data.frame(mostkata=NULL,total=NULL)
+      novmon <- rbind(novmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(novmon)))
+      novmon <- cbind(novmon,x)
+    } else if (j==11&i==3) {
+      novbv <- data.frame(mostkata=NULL,total=NULL)
+      novbv <- rbind(novbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(novbv)))
+      novbv <- cbind(novbv,x)
+    } else if (j==11&i==4) {
+      novfin <- data.frame(mostkata=NULL,total=NULL)
+      novfin <- rbind(novfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(novfin)))
+      novfin <- cbind(novfin,x)
+    } else if (j==11&i==5) {
+      novekobis <- data.frame(mostkata=NULL,total=NULL)
+      novekobis <- rbind(novekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(novekobis)))
+      novekobis <- cbind(novekobis,x)
+    } else if (j==11&i==6) {
+      noveko <- data.frame(mostkata=NULL,total=NULL)
+      noveko <- rbind(noveko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(noveko)))
+      noveko <- cbind(noveko,x)
+    } else if (j==12&i==1) {
+      desihsg <- data.frame(mostkata=NULL,total=NULL)
+      desihsg <- rbind(desihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(desihsg)))
+      desihsg <- cbind(desihsg,x)
+    } else if (j==12&i==2) {
+      desmon <- data.frame(mostkata=NULL,total=NULL)
+      desmon <- rbind(desmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(desmon)))
+      desmon <- cbind(desmon,x)
+    } else if (j==12&i==3) {
+      desbv <- data.frame(mostkata=NULL,total=NULL)
+      desbv <- rbind(desbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(desbv)))
+      desbv <- cbind(desbv,x)
+    } else if (j==12&i==4) {
+      desfin <- data.frame(mostkata=NULL,total=NULL)
+      desfin <- rbind(desfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(desfin)))
+      desfin <- cbind(desfin,x)
+    } else if (j==12&i==5) {
+      desekobis <- data.frame(mostkata=NULL,total=NULL)
+      desekobis <- rbind(desekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(desekobis)))
+      desekobis <- cbind(desekobis,x)
+    } else {
+      deseko <- data.frame(mostkata=NULL,total=NULL)
+      deseko <- rbind(deseko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(deseko)))
+      deseko <- cbind(deseko,x)
+    }
+  }
+}
+```
+januari-maret
+```{r}
+#bikin data frame kosong
+for (j in (sizebulan)) {
+  for (i in 1:(length(topic))) {
+    #diitung dulu yang muncul tiap hari, jadi nanti perhitungan berikutnya dihitung total perbulan dari tiap hari itu
+    temp <- bind[bind$bln==j,] %>%
+            filter(topik %in% topic[i]) %>%
+            group_by(hari,mostkata) %>%
+            summarise(Unique_Elements = n_distinct(mostkata))
+    temp <- temp %>% group_by(mostkata) %>% summarise (total=sum(Unique_Elements))
+    temp <- (temp[order(-temp$total),]) 
+    temp <- temp[1:15,] 
+    
+    if (j==1&i==1) {
+      janihsg <- data.frame(mostkata=NULL,total=NULL)
+      janihsg <- rbind(janihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(janihsg)))
+      janihsg <- cbind(janihsg,x)
+    } else if (j==1&i==2) {
+      janmon <- data.frame(mostkata=NULL,total=NULL)
+      janmon <- rbind(janmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(janmon)))
+      janmon <- cbind(janmon,x)
+    } else if (j==1&i==3) {
+      janbv <- data.frame(mostkata=NULL,total=NULL)
+      janbv <- rbind(janbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(janbv)))
+      janbv <- cbind(janbv,x)
+    } else if (j==1&i==4) {
+      janfin <- data.frame(mostkata=NULL,total=NULL)
+      janfin <- rbind(janfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(janfin)))
+      janfin <- cbind(janfin,x)
+    } else if (j==1&i==5) {
+      janekobis <- data.frame(mostkata=NULL,total=NULL)
+      janekobis <- rbind(janekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(janekobis)))
+      janekobis <- cbind(janekobis,x)
+    } else if (j==1&i==6) {
+      janeko <- data.frame(mostkata=NULL,total=NULL)
+      janeko <- rbind(janeko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(janeko)))
+      janeko <- cbind(janeko,x)
+    } else if (j==2&i==1) {
+      febihsg <- data.frame(mostkata=NULL,total=NULL)
+      febihsg <- rbind(febihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(febihsg)))
+      febihsg <- cbind(febihsg,x)
+    } else if (j==2&i==2) {
+      febmon <- data.frame(mostkata=NULL,total=NULL)
+      febmon <- rbind(febmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(febmon)))
+      febmon <- cbind(febmon,x)
+    } else if (j==2&i==3) {
+      febbv <- data.frame(mostkata=NULL,total=NULL)
+      febbv <- rbind(febbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(febbv)))
+      febbv <- cbind(febbv,x)
+    } else if (j==2&i==4) {
+      febfin <- data.frame(mostkata=NULL,total=NULL)
+      febfin <- rbind(febfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(febfin)))
+      febfin <- cbind(febfin,x)
+    } else if (j==2&i==5) {
+      febekobis <- data.frame(mostkata=NULL,total=NULL)
+      febekobis <- rbind(febekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(febekobis)))
+      febekobis <- cbind(febekobis,x)
+    } else if (j==2&i==6) {
+      febeko <- data.frame(mostkata=NULL,total=NULL)
+      febeko <- rbind(febeko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(febeko)))
+      febeko <- cbind(febeko,x)
+    } else if (j==3&i==1) {
+      marihsg <- data.frame(mostkata=NULL,total=NULL)
+      marihsg <- rbind(marihsg,temp)
+      x <- data.frame(topik=rep("ihsg", nrow(marihsg)))
+      marihsg <- cbind(marihsg,x)
+    } else if (j==3&i==2) {
+      marmon <- data.frame(mostkata=NULL,total=NULL)
+      marmon <- rbind(marmon,temp)
+      x <- data.frame(topik=rep("moneter", nrow(marmon)))
+      marmon <- cbind(marmon,x)
+    } else if (j==3&i==3) {
+      marbv <- data.frame(mostkata=NULL,total=NULL)
+      marbv <- rbind(marbv,temp)
+      x <- data.frame(topik=rep("bursa valas", nrow(marbv)))
+      marbv <- cbind(marbv,x)
+    } else if (j==3&i==4) {
+      marfin <- data.frame(mostkata=NULL,total=NULL)
+      marfin <- rbind(marfin,temp)
+      x <- data.frame(topik=rep("finansial", nrow(marfin)))
+      marfin <- cbind(marfin,x)
+    } else if (j==3&i==5) {
+      marekobis <- data.frame(mostkata=NULL,total=NULL)
+      marekobis <- rbind(marekobis,temp)
+      x <- data.frame(topik=rep("ekonomi bisnis", nrow(marekobis)))
+      marekobis <- cbind(marekobis,x)
+    } else {
+      mareko <- data.frame(mostkata=NULL,total=NULL)
+      mareko <- rbind(mareko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(mareko)))
+      mareko <- cbind(mareko,x)
+    }
+  }
+}
+```
+
+kata populer per hari tanpa topik
+```{r}
+temp <- bind %>%
+        group_by(hari,mostkata) %>%
+        summarise(Unique_Elements = n_distinct(mostkata))
+ignore <- c('ma','menteri')
+temp <- temp %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+            summarise(total=sum(Unique_Elements))
+temp <- (temp[order(-temp$total),]) 
+katatanpatopic <- temp[1:20,]
+katatanpatopic <- as.character(katatanpatopic$mostkata)
+```
+
+ke skip ini lanjutan yang sebelum tanpa topik (bulanan) juli-des
+```{r}
+for (i in (sizebulan)) {
+  if (i==7) {
+    ignore <- c()
+    juli <- rbind(juliihsg,julimon,julibv,julifin,juliekobis,julieko)
+    temp <- juli %>% filter(!is.na(juli$mostkata)) %>% filter(!mostkata %in% ignore) %>%
+            group_by(mostkata) %>% summarise (total=sum(total))
+    temp <- (temp[order(-temp$total),]) 
+    katajul <- temp[1:30,]
+    } else if (i==8) {
+      ignore <- c()
+      agustus <- rbind(augihsg,augmon,augbv,augfin,augekobis,augeko)
+      temp <- agustus %>% filter(!is.na(agustus$mostkata)) %>% filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      kataaug <- temp[1:30,]
+  } else if (i==9) {
+      ignore <- c()
+      september <- rbind(sepihsg,sepmon,sepbv,sepfin,sepekobis,sepeko)
+      temp <- september %>% filter(!is.na(september$mostkata)) %>% 
+              filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      katasep <- temp[1:30,]
+  } else if (i==10) {
+      ignore <- c()
+      oktober <- rbind(oktihsg,oktmon,oktbv,oktfin,oktekobis,okteko)
+      temp <- oktober %>% filter(!is.na(oktober$mostkata)) %>% 
+              filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      kataokt <- temp[1:30,]
+  } else if (i==11) {
+      ignore <- c()
+      november <- rbind(novihsg,novmon,novbv,novfin,novekobis,noveko)
+      temp <- november %>% filter(!is.na(november$mostkata)) %>% 
+              filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      katanov <- temp[1:30,]
+  } else {
+      ignore <- c()
+      desember <- rbind(desihsg,desmon,desbv,desfin,desekobis,deseko)
+      temp <- desember %>% filter(!is.na(desember$mostkata)) %>% 
+              filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      katades <- temp[1:30,]
+  }
+}
+```      
+ke skip ini lanjutan yang sebelum tanpa topik (bulanan) jan-mar
+```{r}
+for (i in (sizebulan)) {
+  if (i==1) {
+    ignore <- c()
+    januari <- rbind(janihsg,janmon,janbv,janfin,janekobis,janeko)
+    temp <- januari %>% filter(!is.na(januari$mostkata)) %>% filter(!mostkata %in% ignore) %>%
+            group_by(mostkata) %>% summarise (total=sum(total))
+    temp <- (temp[order(-temp$total),]) 
+    katajan <- temp[1:30,]
+    } else if (i==2) {
+      ignore <- c()
+      februari <- rbind(febihsg,febmon,febbv,febfin,febekobis,febeko)
+      temp <- februari %>% filter(!is.na(februari$mostkata)) %>% filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      katafeb <- temp[1:30,]
+  } else {
+      ignore <- c()
+      maret <- rbind(marihsg,marmon,marbv,marfin,marekobis,mareko)
+      temp <- maret %>% filter(!is.na(maret$mostkata)) %>% 
+              filter(!mostkata %in% ignore) %>%
+              group_by(mostkata) %>% summarise (total=sum(total))
+      temp <- (temp[order(-temp$total),]) 
+      katamar <- temp[1:30,]
+  }
+}
+```  
+
+   Pengelompokan kata populer (masih lanjutan coding topik) #GAUSAH KARENA BAWAHNYA LEBIH LENGKAP
+```{r}   
+#digabung langsung beberapa bulan
+katapopuler <- rbind(katajul,kataaug,katasep,kataokt,katanov,katades)
+#ignore <- c('emak','ma','prabowo','sandiaga','desa','kwik','level') 
+temp <- katapopuler %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+        summarise (total=sum(total))
+temp <- (temp[order(-temp$total),])
+kata <- temp[1:20,]
+kata <- as.character(kata$mostkata)
+```
+lanjutan diatas yang pertopik dan perbulannya udah digabung dan di pilih mostkatanya. juli-desember
+```{r}
+#panggil kata populer baru liat lg per beberapa bulan
+katapopuler <- rbind(katajul,kataaug,katasep,kataokt,katanov,katades)
+katapopuler <- katapopuler %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+               summarise (total=sum(total))
+kata2 <- katapopuler$mostkata
+temp <- bind %>%
+        filter(mostkata %in% kata2) %>%
+        group_by(tgl,mostkata) %>%
+        summarise(Unique_Elements = n_distinct(mostkata))
+ignore <- c('ma','menteri','desa','anak','emak','jk')
+temp <- temp %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+            summarise(total=sum(Unique_Elements))
+temp <- (temp[order(-temp$total),]) 
+kata2 <- temp[1:20,]
+kata2 <- as.character(kata2$mostkata)
+kata <- kata2
+
+#tanpa topik
+#kata <- kata1
+kata
+```
+lanjutan diatas yang pertopik dan perbulannya udah digabung dan di pilih mostkatanya. januari-maret
+```{r}
+#panggil kata populer baru liat lg per beberapa bulan
+katapopuler <- rbind(katajan,katafeb,katamar)
+katapopuler <- katapopuler %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+               summarise (total=sum(total))
+kata2 <- katapopuler$mostkata
+temp <- bind %>%
+        filter(mostkata %in% kata2) %>%
+        group_by(tgl,mostkata) %>%
+        summarise(Unique_Elements = n_distinct(mostkata))
+ignore <- c('ma','menteri','desa','anak','emak','jk')
+temp <- temp %>% filter(!mostkata %in% ignore) %>% group_by(mostkata) %>% 
+            summarise(total=sum(Unique_Elements))
+temp <- (temp[order(-temp$total),]) 
+kata2 <- temp[1:20,]
+kata2 <- as.character(kata2$mostkata)
+kata <- kata2
+
+#tanpa topik
+#kata <- kata1
+kata
+```
+
+kata populer juli-desember
+```{r}
+write.csv2(kata,file="kata populer jul-des.csv")
+kata1 <- read.csv2("kata populer jul-des.csv")
+kata1 <- kata1[,-c(1)]
+kata1 <- as.character(kata1)
+str(kata1)
+
+kata1
+```
+
+Distribusi tiap kata terbanyak perhari dalam satu bulan
+```{r  fig.width=9, fig.height=5}
+for (k in (sizebulan)) {
+  for (i in 1:length(kata)) {
+      hit <-  bind[bind$bln==k,] %>% 
+              filter(mostkata==kata[i]) %>%
+              group_by(hari,topik) %>%
+              summarise(count=n())
+      p <- ggplot(data = hit, aes(x=factor(hari),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:31))+labs(title=sprintf('Distribusi Kata %s Bulan ke-%d',kata[i],k))+
+  theme(plot.title = element_text(hjust = 0.5))
+      print(p)
+      ggsave(sprintf('./kata %s bulan ke-%d.png',kata[i],k),width = 9,height = 5, dpi = 100)
+  }
+}
+```
+Distribusi tiap kata terbanyak perhari dalam beberapa bulan
+```{r fig.width=9, fig.height=5}
+for (i in 1:length(kata)) {
+      hit <-  bind %>% 
+              filter(mostkata==kata[i]) %>%
+              group_by(hari,topik) %>%
+              summarise(count=n())
+      p <- ggplot(data = hit, aes(x=factor(hari),group=topik,y=count))+geom_bar(stat = "identity",aes(fill=topik))+scale_x_discrete(name='Tanggal',limits = c(1:31))+labs(title=sprintf('Distribusi Kata %s',kata[i]))+
+  theme(plot.title = element_text(hjust = 0.5))
+      print(p)
+      ggsave(sprintf('./kata %s bulan Juli-Des.png',kata[i]),width = 9,height = 5, dpi = 100)
+  }
+```
+
+Distribusi tiap bulan seluruh kata populer dilihat perhari
+```{r fig.width=20, fig.height=4}
+for (j in (sizebulan)) {
+ data_ <- bind %>%
+        filter(bln==j, mostkata%in%kata) %>%
+        group_by(mostkata, topik, tgl) %>%
+        summarise(count=n())
+q <- ggplot(data=data_, aes(x=mostkata, y=count))+
+  geom_bar(stat = "identity",aes(fill=topik))+scale_y_continuous(name='Count',breaks = c(1:10))+coord_flip()+
+  #scale_size(range=(1,3))+
+  facet_wrap(~as.factor(tgl),ncol = length(data_$tgl))+
+  theme(strip.text=element_text(size=5)) 
+print(q) 
+ggsave(sprintf('./distribusi seluruh kata bulan ke-%d (harian).png',j),width = 22,height = 4, dpi = 100)
+}
+```
+
+Proporsi tiap kata perhari juli-desember
+```{r}
+prob <- data.frame(Kata=NULL,Tanggal=NULL,Bulan=NULL,Proporsi=NULL)
+for (k in (sizebulan)) {
+  Bulan <- k
+  data <- bind[bind$bln==k,] %>% 
+          filter(mostkata%in%kata) %>%
+          group_by(hari,mostkata) %>%
+          summarise(count=n())
+  data$hari <- as.factor(data$hari)
+  if (k==9|k==11) {
+    l<-30
+  } else {
+    l<-31
+  }
+  data1 <- data %>% group_by(hari) %>% 
+           summarise(total=sum(count))
+  for (j in 1:l) {
+    for (i in 1:length(kata)) {
+      Kata <- kata[i]
+      Tanggal <- data1$hari[j]
+      data2 <- data[data$hari%in%Tanggal&data$mostkata==kata[i],]
+      if (length(data2$mostkata)==0) {
+          a <- 0
+      } else {
+        data2[,3] <- data2[,3]
+        a <- data2[,3]
+      }
+      Proporsi <- a/(data1[j,2])
+      dummy <- data.frame(Kata=Kata,Tanggal=Tanggal,Bulan=Bulan,Proporsi=Proporsi)
+      colnames(dummy) <- c("Kata","Tanggal","Bulan","Proporsi")
+      prob <- rbind(prob,dummy)
+    }
+  }
+}
+```
+Proporsi tiap kata perhari januari-maret
+```{r}
+prob <- data.frame(Kata=NULL,Tanggal=NULL,Bulan=NULL,Proporsi=NULL)
+for (k in (sizebulan)) {
+  Bulan <- k
+  data <- bind[bind$bln==k,] %>% 
+          filter(mostkata%in%kata) %>%
+          group_by(hari,mostkata) %>%
+          summarise(count=n())
+  data$hari <- as.factor(data$hari)
+  if (k==2) {
+    l<-28
+  } else {
+    l<-31
+  }
+  data1 <- data %>% group_by(hari) %>% 
+           summarise(total=sum(count))
+  for (j in 1:l) {
+    for (i in 1:length(kata)) {
+      Kata <- kata[i]
+      Tanggal <- data1$hari[j]
+      data2 <- data[data$hari%in%Tanggal&data$mostkata==kata[i],]
+      if (length(data2$mostkata)==0) {
+          a <- 0
+      } else {
+        data2[,3] <- data2[,3]
+        a <- data2[,3]
+      }
+      Proporsi <- a/(data1[j,2])
+      dummy <- data.frame(Kata=Kata,Tanggal=Tanggal,Bulan=Bulan,Proporsi=Proporsi)
+      colnames(dummy) <- c("Kata","Tanggal","Bulan","Proporsi")
+      prob <- rbind(prob,dummy)
+    }
+  }
+}
+```
+
+Tabel proporsi tiap bulan , JULI-DESEMBER
+```{r}
+for (i in (sizebulan)) {
+  tp <- prob[prob$Bulan==i,] 
+      if (tp$Bulan==7) {
+        tpjuli <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpjuli <- t(tpjuli)
+        write.csv2(tpjuli, "tpjuli.csv")
+      } else if (tp$Bulan==8) {
+        tpaug <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpaug <- t(tpaug)
+        write.csv2(tpaug, "tpaug.csv")
+      } else if (tp$Bulan==9) {
+        tpaug <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpaug <- t(tpaug)
+        write.csv2(tpaug, "tpsep.csv")
+      } else if (tp$Bulan==10) {
+        tpaug <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpaug <- t(tpaug)
+        write.csv2(tpaug, "tpokt.csv")
+      } else if (tp$Bulan==11) {
+        tpaug <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpaug <- t(tpaug)
+        write.csv2(tpaug, "tpnov.csv")
+      } else {
+        tpsep <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpsep <- t(tpsep)
+        write.csv2(tpsep, "tpdes.csv")
+      }
+}
+```
+Tabel proporsi tiap bulan , JANUARI-MARET
+```{r}
+for (i in (sizebulan)) {
+  tp <- prob[prob$Bulan==i,] 
+      if (tp$Bulan==1) {
+        tpjan <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpjan <- t(tpjan)
+        write.csv2(tpjan, "tpjan.csv")
+      } else if (tp$Bulan==2) {
+        tpfeb <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpfeb <- t(tpfeb)
+        write.csv2(tpfeb, "tpfeb.csv")
+      } else {
+        tpmar <- xtabs(Proporsi ~ Kata + Tanggal, tp)
+        tpmar <- t(tpmar)
+        write.csv2(tpmar, "tpmar.csv")
+      }
+}
+```
+
+olah data tpbulan (manggil tabel) juli-desember
+```{r}
+tpjuli <- read.csv('tpjuli.csv', sep=";")
+        tpjuli <- (tpjuli[order(tpjuli$X),])
+        #tpjuli <- tpjuli[,-c(1)]
+tpaug <- read.csv('tpaug.csv', sep=";")
+        tpaug <- (tpaug[order(tpaug$X),])
+        #tpaug <- tpaug[,-c(1)]
+tpsep <- read.csv('tpsep.csv', sep=";")
+        tpsep <- (tpsep[order(tpsep$X),])
+        tpsep <- tpsep[-c(31),]
+tpokt <- read.csv('tpokt.csv', sep=";")
+        tpokt <- (tpokt[order(tpokt$X),])
+        #tpokt <- tpokt[,-c(1)]
+tpnov <- read.csv('tpnov.csv', sep=";")
+        tpnov <- (tpnov[order(tpnov$X),])
+        tpnov <- tpnov[-c(31),]
+tpdes <- read.csv('tpdes.csv', sep=";")
+        tpdes <- (tpdes[order(tpdes$X),])
+        #tpdes <- tpdes[,-c(1)]
+```
+olah data tpbulan (manggil tabel) januari-maret
+```{r}
+tpjan <- read.csv('tpjan.csv', sep=";")
+        tpjan <- (tpjan[order(tpjan$X),])
+        #tpjan <- tpjan[,-c(1)]
+tpfeb <- read.csv('tpfeb.csv', sep=";")
+        tpfeb <- (tpfeb[order(tpfeb$X),])
+        #tpfeb <- tpfeb[,-c(1)]
+tpmar <- read.csv('tpmar.csv', sep=";")
+        tpmar <- (tpmar[order(tpmar$X),])
+        tpmar <- tpmar[-c(31),]
+```
+
+normalisasi tpbulan vektor, variabel, semua (GAUSAH KARENA YANG ATAS UDAH)
+```{r}
+#vektor juli
+rataan <- rowMeans(tpjuli, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpjuli, nrow=nrow(tpjuli),ncol =20)
+sd <- rowSds(subs)
+vkjul <- cbind(tpjuli,rataan,sd)
+#variabel
+rataan <- colMeans(x=tpjul, na.rm = TRUE)
+subs <- as.matrix(tpjul, nrow=nrow(tpjul),ncol=20)
+sd <- colSds(subs)
+vrjul <- rbind(tpjul,rataan,sd)
+#semua
+sjul <- as.matrix(tpjul)
+miu <- mean(sjul)
+sd1 <- sd(sjul)
+#normalisasi 
+a <- nrow(vkjul)
+b <- ncol(vkjul)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vkjul[i,j]<-(vkjul[i,j]-vkjul[i,21])/(vkjul[i,22])
+    #normalisasi variabel
+    vrjul[i,j] <- (vrjul[i,j]-vrjul[32,j])/vrjul[33,j]
+    #normalisasi semua
+    sjul[i,j] <- (sjul[i,j]-miu)/sd1
+  }
+}
+```
+```{r}
+#vektor agustus
+rataan <- rowMeans(tpaug, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpaug, nrow=nrow(tpaug),ncol =20)
+sd <- rowSds(subs)
+vkaug <- cbind(tpaug,rataan,sd)
+#variabel 
+rataan <- colMeans(x=tpaug, na.rm = TRUE)
+subs <- as.matrix(tpaug, nrow=nrow(tpaug),ncol=20)
+sd <- colSds(subs)
+vraug <- rbind(tpaug,rataan,sd)
+#rataan semua normalisasi
+saug <- as.matrix(tpaug)
+miu <- mean(saug)
+sd1 <- sd(saug)
+#normalisasi
+a <- nrow(vkaug)
+b <- ncol(vkaug)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vkaug[i,j]<-(vkaug[i,j]-vkaug[i,21])/(vkaug[i,22])
+    #normalisasi variabel
+    vraug[i,j] <- (vraug[i,j]-vraug[32,j])/vraug[33,j]
+    #normalisasi semua
+    saug[i,j] <- (saug[i,j]-miu)/sd1
+  }
+}
+```
+```{r}
+#vektor september
+rataan <- rowMeans(tpsep, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpsep, nrow=nrow(tpsep),ncol =20)
+sd <- rowSds(subs)
+vksep <- cbind(tpsep,rataan,sd)
+#variabel
+rataan <- colMeans(x=tpsep, na.rm = TRUE)
+subs <- as.matrix(tpsep, nrow=nrow(tpsep),ncol=20)
+sd <- colSds(subs)
+vrsep <- rbind(tpsep,rataan,sd)
+#semua
+ssep <- as.matrix(tpsep)
+miu <- mean(ssep)
+sd1 <- sd(ssep)
+#normalisasi
+a <- nrow(vksep)
+b <- ncol(vksep)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vksep[i,j]<-(vksep[i,j]-vksep[i,21])/(vksep[i,22])
+    #normalisasi variabel
+    vrsep[i,j] <- (vrsep[i,j]-vrsep[31,j])/vrsep[32,j]
+    #normalisasi semua
+    ssep[i,j] <- (ssep[i,j]-miu)/sd1
+  }
+}
+```
+```{r}
+#vektor oktober
+rataan <- rowMeans(tpokt, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpokt, nrow=nrow(tpokt),ncol =20)
+sd <- rowSds(subs)
+vkokt <- cbind(tpokt,rataan,sd)
+#variabel
+rataan <- colMeans(x=tpokt, na.rm = TRUE)
+subs <- as.matrix(tpokt, nrow=nrow(tpokt),ncol=20)
+sd <- colSds(subs)
+vrokt <- rbind(tpokt,rataan,sd)
+#semua
+sokt <- as.matrix(tpokt)
+miu <- mean(sokt)
+sd1 <- sd(sokt)
+#normalisasi
+a <- nrow(vkokt)
+b <- ncol(vkokt)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vkokt[i,j]<-(vkokt[i,j]-vkokt[i,21])/(vkokt[i,22])
+    #normalisasi variabel
+    vrokt[i,j] <- (vrokt[i,j]-vrokt[32,j])/vrokt[33,j]
+    #normalisasi semua
+    sokt[i,j] <- (sokt[i,j]-miu)/sd1
+  }
+}
+```
+```{r}
+#vektor november
+rataan <- rowMeans(tpnov, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpnov, nrow=nrow(tpnov),ncol =20)
+sd <- rowSds(subs)
+vknov <- cbind(tpnov,rataan,sd)
+#variabel
+rataan <- colMeans(x=tpnov, na.rm = TRUE)
+subs <- as.matrix(tpnov, nrow=nrow(tpnov),ncol=20)
+sd <- colSds(subs)
+vrnov <- rbind(tpnov,rataan,sd)
+#semua
+snov <- as.matrix(tpnov)
+miu <- mean(snov)
+sd1 <- sd(snov)
+#normalisasi
+a <- nrow(vknov)
+b <- ncol(vknov)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vknov[i,j]<-(vknov[i,j]-vknov[i,21])/(vknov[i,22])
+    #normalisasi variabel
+    vrnov[i,j] <- (vrnov[i,j]-vrnov[31,j])/vrnov[32,j]
+    #normalisasi semua
+    snov[i,j] <- (snov[i,j]-miu)/sd1
+  }
+}
+```
+```{r}
+#vektor desember
+rataan <- rowMeans(tpdes, na.rm = FALSE, dims = 1)
+subs <- as.matrix(tpdes, nrow=nrow(tpdes),ncol =20)
+sd <- rowSds(subs)
+vkdes <- cbind(tpdes,rataan,sd)
+#variabel
+rataan <- colMeans(x=tpdes, na.rm = TRUE)
+subs <- as.matrix(tpdes, nrow=nrow(tpdes),ncol=20)
+sd <- colSds(subs)
+vrdes <- rbind(tpdes,rataan,sd)
+#semua
+sdes <- as.matrix(tpdes)
+miu <- mean(sdes)
+sd1 <- sd(sdes)
+#normalisasi
+a <- nrow(vkdes)
+b <- ncol(vkdes)-2
+for (i in 1:a) {
+  for (j in 1:b) {
+    #normalisasi vektor
+    vkdes[i,j]<-(vkdes[i,j]-vkdes[i,21])/(vkdes[i,22])
+    #normalisasi variabel
+    vrdes[i,j] <- (vrdes[i,j]-vrdes[32,j])/vrdes[33,j]
+    #normalisasi semua
+    sdes[i,j] <- (sdes[i,j]-miu)/sd1
+  }
+}
+```
+```{R}
+#vektor
+vkjul <- vkjul[,-c(21,22)]
+vkaug <- vkaug[,-c(21,22)]
+vksep <- vksep[,-c(21,22)]
+vkokt <- vkokt[,-c(21,22)]
+vknov <- vknov[,-c(21,22)]
+vkdes <- vkdes[,-c(21,22)]
+#variabel
+vrjul <- vrjul[-c(32,33),]
+vraug <- vraug[-c(32,33),]
+vrsep <- vrsep[-c(31,32),]
+vrokt <- vrokt[-c(32,33),]
+vrnov <- vrnov[-c(31,32),]
+vrdes <- vrdes[-c(32,33),]
+#semua
+```
+
+Gabungin target sama tabel proposi
+```{r}
+sahampenutupan <- read.csv("sahampenutupan.csv", sep = ';')
+sahampenutupan$Dates <- dmy(sahampenutupan$Dates)
+```
+juli-desember
+```{r}
+saham7 <- sahampenutupan[month(sahampenutupan$Dates)==7,]
+x <- data.frame(bulan=rep(7,nrow(saham7)))
+saham7 <- cbind(saham7,x)
+tpjuli <- cbind(tpjuli,saham7$Target,saham7$bulan)
+colnames(tpjuli)[22] <- c("target")
+colnames(tpjuli)[1] <- c("tanggal")
+colnames(tpjuli)[23] <- c("bulan")
+
+saham8 <- sahampenutupan[month(sahampenutupan$Dates)==8,]
+y <- data.frame(bulan=rep(8,nrow(saham8)))
+saham8 <- cbind(saham8,y)
+tpaug <- cbind(tpaug,saham8$Target,saham8$bulan)
+colnames(tpaug)[22] <- c("target")
+colnames(tpaug)[1] <- c("tanggal")
+colnames(tpaug)[23] <- c("bulan")
+
+saham9 <- sahampenutupan[month(sahampenutupan$Dates)==9,]
+z <- data.frame(bulan=rep(9,nrow(saham9)))
+saham9 <- cbind(saham9,z)
+tpsep <- cbind(tpsep,saham9$Target,saham9$bulan)
+colnames(tpsep)[22] <- c("target")
+colnames(tpsep)[1] <- c("tanggal")
+colnames(tpsep)[23] <- c("bulan")
+
+saham10 <- sahampenutupan[month(sahampenutupan$Dates)==10,]
+xy <- data.frame(bulan=rep(10,nrow(saham10)))
+saham10 <- cbind(saham10,xy)
+tpokt <- cbind(tpokt,saham10$Target,saham10$bulan)
+colnames(tpokt)[22] <- c("target")
+colnames(tpokt)[1] <- c("tanggal")
+colnames(tpokt)[23] <- c("bulan")
+
+saham11 <- sahampenutupan[month(sahampenutupan$Dates)==11,]
+xz <- data.frame(bulan=rep(11,nrow(saham11)))
+saham11 <- cbind(saham11,xz)
+tpnov <- cbind(tpnov,saham11$Target,saham11$bulan)
+colnames(tpnov)[22] <- c("target")
+colnames(tpnov)[1] <- c("tanggal")
+colnames(tpnov)[23] <- c("bulan")
+
+saham12 <- sahampenutupan[month(sahampenutupan$Dates)==12,]
+yz <- data.frame(bulan=rep(12,nrow(saham12)))
+saham12 <- cbind(saham12,yz)
+tpdes <- cbind(tpdes,saham12$Target,saham12$bulan)
+colnames(tpdes)[22] <- c("target")
+colnames(tpdes)[1] <- c("tanggal")
+colnames(tpdes)[23] <- c("bulan")
+```
+januari-maret
+```{r}
+saham1 <- sahampenutupan[month(sahampenutupan$Dates)==1,]
+x <- data.frame(bulan=rep(1,nrow(saham1)))
+saham1 <- cbind(saham1,x)
+tpjan <- cbind(tpjan,saham1$Target,saham1$bulan)
+colnames(tpjan)[22] <- c("target")
+colnames(tpjan)[1] <- c("tanggal")
+colnames(tpjan)[23] <- c("bulan")
+
+saham2 <- sahampenutupan[month(sahampenutupan$Dates)==2,]
+y <- data.frame(bulan=rep(2,nrow(saham2)))
+saham2 <- cbind(saham2,y)
+tpfeb <- cbind(tpfeb,saham2$Target,saham2$bulan)
+colnames(tpfeb)[22] <- c("target")
+colnames(tpfeb)[1] <- c("tanggal")
+colnames(tpfeb)[23] <- c("bulan")
+
+saham3 <- sahampenutupan[month(sahampenutupan$Dates)==3,]
+z <- data.frame(bulan=rep(3,nrow(saham3)))
+saham3 <- cbind(saham3,z)
+tpmar <- cbind(tpmar,saham3$Target,saham3$bulan)
+colnames(tpmar)[22] <- c("target")
+colnames(tpmar)[1] <- c("tanggal")
+colnames(tpmar)[23] <- c("bulan")
+```
+
+gabung semua bulan proporsi sama target juli-desember
+```{r}
+olahdata <- rbind(tpjuli,tpaug,tpsep,tpokt,tpnov,tpdes)
+olahdata <- olahdata[,-ncol(olahdata)]
+olahdata <- olahdata[,-(1)]
+write.csv2(olahdata, "olahdata.csv")
+```
+gabung semua bulan proporsi sama target januari-maret
+```{r}
+olahdata <- rbind(tpjan,tpfeb,tpmar)
+olahdata <- olahdata[,-ncol(olahdata)]
+olahdata <- olahdata[,-(1)]
+write.csv2(olahdata, "olahdata.csv")
+```
+
+Pengelompokan tanggal menjadi perminggu di data berita gabungan (ntar)
+```{r}
+bind$tgl <- as.Date(bind$tgl)
+firstdate <- min(bind$tgl)
+ndate <- as.POSIXlt(firstdate)$wday
+
+if (ndate!=1) {
+  firstdate <- firstdate-(ndate-1)
+}
+
+bind$dweek <- as.numeric(bind$tgl-firstdate) %/% 7
+```
+Distribusi tiap bulan sebaran kata populer dilihat perminggu
+```{r fig.width=15, fig.height=5}
+for (j in (sizebulan)) {
+data_ <- bind %>%
+        filter(bln==j&bind$dweek>=0, mostkata%in%kata) %>%
+        group_by(mostkata, topik, dweek) %>%
+        summarise(count=n())
+q <- ggplot(data=data_, aes(x=mostkata, y=count))+
+  geom_bar(stat = "identity",aes(fill=topik))+scale_y_discrete(name='count',limits = c(1:20))+coord_flip()+
+  scale_size(range=c(1,3))+
+  facet_wrap(~as.factor(dweek),ncol = length(data_$dweek))+
+  theme(strip.text=element_text(size=5)) 
+print(q) 
+ggsave(sprintf('./distribusi seluruh kata bulan ke-%d (mingguan).png',j),width = 15,height = 5, dpi = 100)
+}
+```
+Pengelompokan tiap minggu data saham
+```{r}
+saham <- read.csv("tglsaham.csv", sep = ';')
+saham$Dates <- dmy(saham$Dates)
+Saham <- data.frame(Dates=NULL,Opening.Price=NULL,Closing.Price=NULL,Beda.t=NULL,Beda.tutup.t.1.buka.t=NULL,Beda.Penutupan=NULL)
+
+#Pengelompokan data saham bulan Juli sampai September
+for (i in (sizebulan)) {
+    saham1 <- saham[month(saham$Dates)==i,]
+    Saham <- rbind(Saham,saham1)
+}
+
+sepeko <- data.frame(mostkata=NULL,total=NULL)
+      sepeko <- rbind(sepeko,temp)
+      x <- data.frame(topik=rep("ekonomi", nrow(sepeko)))
+      sepeko <- cbind(sepeko,x)
+
+firstdte <- Saham[[1]][1]
+ndte <- as.POSIXlt(firstdte)$wday
+if (ndte!=1) {
+  firstdte <- firstdte-(ndte-1)
+}
+Saham$weeks <- as.numeric(Saham$Dates-firstdte) %/% 7
+```
+Visualisasi saham tiap bulan (harian)
+```{r fig.width=10, fig.height=4}
+saham <- sahampenutupan
+for (j in (sizebulan)) {
+datasaham <- saham %>%
+        filter(month(saham$Dates)==j,) %>%
+        group_by(Dates,BedaPenutupan) 
+q1 <- ggplot(data=datasaham,aes(x=Dates,y=BedaPenutupan,group=1))+geom_line()+geom_point()+scale_size(range=c(1,3))+theme(strip.text=element_text(size=5)) 
+print(q1) 
+ggsave(sprintf('./saham bulan ke-%d (harian).png',j),width = 20,height =4, dpi = 100)
+}
+```

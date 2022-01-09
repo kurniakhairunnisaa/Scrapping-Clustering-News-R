@@ -1,0 +1,182 @@
+---
+title: "knn"
+author: "Kurnia Khairunnisaa"
+date: "22 Januari 2019"
+output: html_document
+---
+PANGGIL DATA 2 - MODEL KNN 3
+
+
+panggil data 2
+```{r}
+od <- read.csv('olahdata.csv', sep = ";")
+#masukin kolom target
+ode <- od[,22]
+#ubah jadi matrix numerik
+od <- od[,-c(1,22)]
+a <- ncol(od)
+for (i in 1:a) {
+  od[,i] <- as.character(od[,i])
+  od[,i] <- as.numeric(gsub(",", ".", gsub("\\.", "", od[,i])))
+}
+#gabunging matrix numerik dg target lagi
+od <- cbind(od,ode)
+
+#odd <- od[,-c(2,11,13,15)]
+```
+
+model knn 3
+```{r}
+library(caret)
+library(e1071)
+
+odd$ode = as.factor(odd$ode)
+
+set.seed(101)
+index = createDataPartition(odd$ode , p = 0.7, list = F )
+train = odd[index,]
+validation = odd[-index,]
+
+levels(train$ode) <- make.names(levels(factor(train$ode)))
+levels(validation$ode) <- make.names(levels(factor(validation$ode)))
+
+repeats = 3
+numbers = 10
+tunel = 10
+
+set.seed(1234)
+x = trainControl(method = "repeatedcv",
+                 number = numbers,
+                 repeats = repeats,
+                 classProbs = TRUE,
+                 summaryFunction = twoClassSummary)
+
+model1 <- train(ode~. , data = train, method = "knn",
+               preProcess = c("center","scale"),
+               trControl = x,
+               metric = "ROC",
+               tuneLength = tunel)
+
+# Summary of model
+model1
+plot(model1)
+```
+```{r}
+# Validation
+valid_pred <- predict(model1,validation, type = "prob")
+
+#Storing Model Performance Scores
+library(ROCR)
+pred_val <-prediction(valid_pred[,2],validation$ode)
+
+# Calculating Area under Curve (AUC)
+perf_val <- performance(pred_val,"auc")
+perf_val
+
+# Plot AUC
+perf_val <- performance(pred_val, "tpr", "fpr")
+plot(perf_val, col = "green", lwd = 1.5)
+```
+
+
+
+
+
+```{r}
+data1 = read.csv("US Presidential Data.csv")
+
+library(caret)
+library(e1071)
+
+data1$Win.Loss = as.factor(data1$Win.Loss)
+
+set.seed(101)
+index = createDataPartition(data1$Win.Loss, p = 0.7, list = F )
+train = data1[index,]
+validation = data1[-index,]
+
+levels(train$Win.Loss) <- make.names(levels(factor(train$Win.Loss)))
+levels(validation$Win.Loss) <- make.names(levels(factor(validation$Win.Loss)))
+
+repeats = 3
+numbers = 10
+tunel = 10
+
+set.seed(1234)
+x = trainControl(method = "repeatedcv",
+                 number = numbers,
+                 repeats = repeats,
+                 classProbs = TRUE,
+                 summaryFunction = twoClassSummary)
+
+model1 <- train(Win.Loss~. , data = train, method = "knn",
+               preProcess = c("center","scale"),
+               trControl = x,
+               metric = "ROC",
+               tuneLength = tunel)
+
+# Summary of model
+model1
+plot(model1)
+```
+
+```{r}
+# Validation
+valid_pred <- predict(model1,validation, type = "prob")
+
+#Storing Model Performance Scores
+library(ROCR)
+pred_val <-prediction(valid_pred[,2],validation$Win.Loss)
+
+# Calculating Area under Curve (AUC)
+perf_val <- performance(pred_val,"auc")
+perf_val
+
+# Plot AUC
+perf_val <- performance(pred_val, "tpr", "fpr")
+plot(perf_val, col = "green", lwd = 1.5)
+
+#Calculating KS statistics
+ks <- max(attr(perf_val, "y.values")[[1]] - (attr(perf_val, "x.values")[[1]]))
+ks
+```
+
+
+```{r}
+#ambil data
+prc <- read.csv("Prostate_Cancer.csv",stringsAsFactors = FALSE)    #This command imports the required data set and saves it to the prc data frame.
+stringsAsFactors = FALSE   #This command helps to convert every character vector to a factor wherever it makes sense.
+
+#ilangin data yang bukan numerik
+table(prc$diagnosis_result)  # it helps us to get the numbers of patients
+#bisa juga buat liat tiap variable ada berapa observasinya
+
+prc$diagnosis <- factor(prc$diagnosis_result, levels = c("B", "M"), labels = c("Benign", "Malignant"))
+
+round(prop.table(table(prc$diagnosis)) * 100, digits = 1)  # it gives the result in the percentage form rounded of to 1 decimal place( and so it's digits = 1)
+
+###normalisasi###
+#penting karena tiap variable bisa aja scalenya beda2
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x))) }
+
+prc_n <- as.data.frame(lapply(prc[2:9], normalize)) #normalisasi per variable dalam dataframe
+
+###train test###
+prc_train <- prc_n[1:65,]
+prc_test <- prc_n[66:100,]
+
+###bikin model data###
+install.packages("class")
+library(class)
+
+prc_test_pred <- knn(train = prc_train, test = prc_test,cl = prc_train_labels, k=10)
+#k dipilih dr akar jumlah seluruh observasi
+
+###evaluasi model###
+install.packages("gmodels")
+CrossTable(x=prc_test_labels,y=prc_test_pred,prop.chisq=FALSE)
+
+#improve model dg variasi k, FN harus kecil
+```
+

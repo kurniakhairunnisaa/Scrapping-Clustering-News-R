@@ -1,0 +1,93 @@
+---
+title: "pengolahan data"
+author: "Kurnia Khairunnisaa"
+date: "26 Juni 2019"
+output: html_document
+---
+panggil semua berita
+```{r}
+#detik
+ekobis <- read.csv("E:/Tugas Akhir/berita diambil/berita ebis tri III.csv")
+moneter <- read.csv("E:/Tugas Akhir/berita diambil/berita mon tri III.csv")
+finansial <- read.csv("E:/Tugas Akhir/berita diambil/berita fin tri III.csv")
+bursavalas <- read.csv("E:/Tugas Akhir/berita diambil/berita bv tri III.csv")
+mr <- read.csv("E:/Tugas Akhir/berita diambil/berita market research tri III.csv")
+industri <- read.csv("E:/Tugas Akhir/berita diambil/berita industri tri III.csv")
+fintech <- read.csv("E:/Tugas Akhir/berita diambil/berita fintech tri III.csv")
+infra <- read.csv("E:/Tugas Akhir/berita diambil/berita infrastruktur tri III.csv")
+prop <- read.csv("E:/Tugas Akhir/berita diambil/berita properti tri III.csv")
+
+#kompas
+mkomp <- read.csv("E:/Tugas Akhir/berita diambil/berita money kompas.csv")
+pkomp <- read.csv("E:/Tugas Akhir/berita diambil/berita properti kompas.csv")
+```
+
+berita detik
+```{r}
+findetik <- rbind(ekobis,moneter,finansial,bursavalas,mr,industri,fintech)
+findetik <- findetik[,-c(1)]
+```
+
+berita detik kompas
+```{r}
+bind <- rbind(findetik,mkomp)
+bind <- bind[,-c(1)]
+```
+
+topik baru
+```{r}
+topik <- rbind(infra,prop,pkomp)
+topik <- topik[,-c(1)]
+```
+
+berita global
+```{r}
+#ambil baru?
+bind <- bind[bind$global=="bukan",]
+```
+
+
+
+
+
+```{r}
+hehe <- bind %>% group_by(mostkata)%>% summarise(count=n())
+hehe <- (hehe[order(-hehe$count),])
+kata <- hehe[1:15,] 
+kata <- as.character(kata$mostkata)
+```
+data per minggu
+tanggal saham
+```{r}
+dvec <- read.csv("tglsaham.csv", sep = ';')
+dvec <- dmy(dvec$Dates)
+firstdate <- dvec[[1]][1]
+ndate <- as.POSIXlt(firstdate)$wday
+
+if (ndate!=1) {
+  firstdate <- firstdate-(ndate-1)
+}
+
+dweek <- as.numeric(dvec-firstdate) %/% 7
+```
+tanggal berita
+```{r}
+bind$tgl <- as.Date(bind$tgl)
+str(bind)
+firstdate <- min(bind$tgl)
+ndate <- as.POSIXlt(firstdate)$wday
+
+if (ndate!=1) {
+  firstdate <- firstdate-(ndate-1)
+}
+
+bind$dweek <- as.numeric(bind$tgl-firstdate) %/% 7
+```
+
+
+
+cari VIF
+```{r}
+
+```
+

@@ -1,0 +1,250 @@
+---
+title: "bismillah"
+author: "Kurnia Khairunnisaa"
+date: "13 November 2018"
+output: html_document
+---
+panggil data tabel proporsi dengan target
+```{r}
+od <- read.csv('olahdata.csv', sep = ";")
+od <- od[,-(1)]
+factorconvert <- function(f){as.numeric(as.character(sub("," , ".",f)))}
+od <- sapply(od, factorconvert)
+target <- od[,c(21)]
+od <- od[,-c(21)]
+#minus data sekuritas
+#odd <- od[,-c(2,11,13,15,21)]
+```
+###panggil data cara kedua
+```{r}
+od<- olahdata
+od <- od[,-c(21,22)]
+a <- ncol(od)
+for (i in 1:a) {
+  od[,i] <- as.character(od[,i])
+  od[,i] <- as.numeric(gsub(",", ".", gsub("\\.", "", od[,i])))
+}
+```
+###mencari rataan dan SD (gausah)
+```{r}
+library(matrixStats)
+rataan <- rowMeans(od, na.rm = FALSE, dims = 1)
+od1 <- as.matrix(od, nrow=92,ncol =21)
+SD <- rowSds(od1)
+od <- cbind(od1,rataan,SD)
+```
+###mencari normalisasi dari data (gausah)
+```{r}
+a <- nrow(od)
+b <- ncol(od)-2
+
+for (i in 1:a) {
+  for (j in 1:b) {
+   od[i,j]<-(od[i,j]-od[i,22])/(od[i,23])
+  }
+}
+```
+metode elbow
+```{r}
+set.seed(123)
+# Compute and plot wss for k = 2 to k = 15
+kmax <- 20 # Maximal number of clusters
+data <- od
+
+wss <- sapply(1:kmax, 
+        function(k){kmeans(data, k, nstart=1 )$tot.withinss})
+
+tbl <- data.frame(K=NULL,JKG=NULL)
+for (i in 1:ncol(od)) {
+  temp <- data.frame(K=i,JKG=wss[i])
+  tbl <- rbind(tbl,temp)
+}
+plot(1:kmax, wss, type="b", pch = 19, frame = FALSE, 
+       xlab="Number of clusters K",
+       ylab="Total within-clusters sum of squares")
+abline(v = 11, lty =2)
+
+```
+
+visualisasi kmeans
+```{r}
+#coba <- sapply(1:kmax, 
+        #function(k){kmeans(data, k, nstart=1 )})
+        #str(coba)
+#library(fviz_cluster)
+data <- od
+coba <- kmeans(data,6, nstart=1)
+pwi <- coba$centers
+write.csv2(pwi,"centerskmeans.csv")
+
+clust <- coba$cluster
+data1 <- cbind(data,target,clust)
+#fviz_cluster(coba, data = data, geom = "point", stand = FALSE, frame.type = "norm")
+#results <- kmeans(na.omit(irisa.features),3)
+write.csv2(data1,"clusterkmeans.csv")
+data <- read.csv2("clusterkmeans.csv",sep=";")
+clust1 <- data[clust==1,]
+clust2 <- data[clust==2,]
+clust3 <- data[clust==3,]
+clust4 <- data[clust==4,]
+clust5 <- data[clust==5,]
+clust6 <- data[clust==6,]
+
+write.csv2(clust1,"klaster 1.csv")
+write.csv2(clust2,"klaster 2.csv")
+write.csv2(clust3,"klaster 3.csv")
+write.csv2(clust4,"klaster 4.csv")
+write.csv2(clust5,"klaster 5.csv")
+write.csv2(clust6,"klaster 6.csv")
+```
+mencari rataan dan sd dari cluster2, karakteristik kmeans
+```{r}
+#karakteristik data belum dikurangi variabel sekuritas
+library(matrixStats)
+od1 <- od
+od1 <- as.matrix(od1, nrow=92,ncol=20)
+SD <- rowSds(od1)
+rataan <- rowMeans(od1, na.rm = FALSE, dims = 1)
+od1 <- cbind(od1,rataan,SD)
+?kmeans
+
+#coba$betweenss
+a <- coba$withinss
+var <- data.frame(Klaster=NULL,Variansi=NULL)
+for (i in 1:length(a)) {
+  temp <- data.frame(Klaster=i,Variansi=a[i])
+  var <- rbind(var,temp)
+}
+write.csv2(var,"variansi kmeans.csv")
+```
+
+###jarak
+```{r}
+cc <- coba$centers
+cc <- cc[6,]
+cc
+
+coba$cluster
+
+clust1 <- clust1[,-c(1,22)]
+jarak1 <- data.frame(jarak=NULL,baris1=NULL,baris2=NULL)
+a <- nrow(clust1)
+a <- a-1
+for (i in 1:a) {
+  sum<-0
+  for (j in 1:20) {
+      temp <- (clust1[i,j]-clust1[i+1,j])^2
+      sum <- temp+sum
+  }
+  distance <- sqrt(sum)
+  baris1 <- i
+  baris2 <- i+1
+  jarak <- data.frame(jarak=distance,baris1=baris1,baris2=baris2)
+  jarak1 <- rbind(jarak1,jarak)
+}
+```
+
+```{r}
+#karakteristik data variabel sekuritas
+library(matrixStats)
+od1 <- odd[,-c(21)]
+od1 <- as.matrix(od1, nrow=184,ncol=20)
+SD <- rowSds(od1)
+rataan <- rowMeans(od1, na.rm = FALSE, dims = 1)
+od1 <- cbind(od1,rataan,SD)
+```
+
+
+
+###cek prediksi model kmeans-ga penting
+```{r}
+library(flexclust)
+
+set.seed(1)
+ind <- sample(nrow(od), 0.7*nrow(od))
+
+od[["train"]] <- TRUE
+od[["train"]][ind] <- FALSE
+
+cl1 = kcca(od[od[["train"]]==TRUE, ], k=5, kccaFamily("kmeans"))
+cl1    
+#
+# call:
+# kcca(x = od[od[["train"]] == TRUE, ], k = 5)
+#
+# cluster sizes:
+#
+#  1   2   3   4 
+#130 181  98  91 
+
+pred_train <- predict(cl1)
+pred_test <- predict(cl1, newdata=od[od[["train"]]==FALSE, ])
+
+image(cl1)
+points(od[od[["train"]]==TRUE, ], col=pred_train, pch=19, cex=0.3)
+points(od[od[["train"]]==FALSE, ], col=pred_test, pch=22, bg="orange")
+```
+###ga penting
+```{r}
+bikin kolom panjang
+A <- od
+panjang <- data.frame(panjang=NULL)
+var <- 21
+size <- length(92)
+for i in size
+s <- 0
+   for j in var
+      p <- (A[i,j])^2
+      s <- s+p
+      akar <- sqrt(s)
+   end
+   panjang <- rbind(panjang,akar)
+end
+A <- cbind(A,panjang)
+
+bikin matriks baru: sudut 2 vektor
+a <- 0
+k <- 1
+temp <- data.frame(i=NULL,...)
+err <- 10^(-8)
+beda <- data.frame(beda=NULL)
+
+for i in size
+   if (beda==NULL) {
+      i <- i
+   } else if (beda!=NULL) {
+      for l in beda
+         i <- beda(l)
+   }
+   for j in size-1
+       if (beda==NULL) {
+          j <- j+1
+       } else if (beda!=NULL) {
+          for m in beda
+             j <- beda(m)+1
+       }
+       c <- A[i,24]*A[j,24]
+         #jarak euclidean
+          for k in var
+              b <- (A[i,k]-A[j,k])^2
+              a <- a+b
+              panjang <- sqrt(a)
+          end
+      sudut <- panjang/c
+      fix <- data.frame(i=i,j=j,...)
+      temp <- rbind(temp,fix)
+     if (i==1) {
+        if (sudut>err) {
+         beda <- rbind(beda,j)
+         k <- k+1
+        end
+      } else {
+        beda <- beda
+     }
+      end
+   end
+end
+
+cari roc manual (def jgn lupa)
+```
+
